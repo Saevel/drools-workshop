@@ -3,13 +3,15 @@ package prv.saevel.drools.workshop.users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
-public class Account {
+public class User {
 
-    private long userId;
+    private long id;
 
-    private double balance;
+    private String country;
 
-    private Currency currency;
+    private List<Account> accounts;
 }

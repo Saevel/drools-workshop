@@ -1,8 +1,8 @@
 <kmodule xmlns="http://www.drools.org/xsd/kmodule">
     <kbase name="userRules" packages="prv.saevel.drools.workshop.users">
-        <ksession name="default" />
+        <ksession name="userRulesSession" type="stateful" />
     </kbase>
     <kbase name="amlRules" packages="prv.saevel.drools.workshop.aml">
-        <ksession name="default" />
+        <ksession name="amlSession" />
     </kbase>
 </kmodule>

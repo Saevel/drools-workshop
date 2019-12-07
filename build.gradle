@@ -12,6 +12,7 @@ version '1.0'
 sourceCompatibility = 1.8
 
 repositories {
+    jcenter()
     mavenCentral()
 }
 
@@ -19,9 +20,13 @@ dependencies {
     providedCompile group: 'org.projectlombok', name: 'lombok', version: "1.18.10"
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-webflux', version: "2.2.0.RELEASE"
-    compile group: 'com.h2database', name: 'h2', version: '1.4.200'
-    compile 'org.drools:drools-spring:jar:6.0.0.Beta2'
+    compile group: 'org.kie', name: 'kie-server-spring-boot-starter-drools', version: '7.30.0.Final'
 
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.2.0.RELEASE'
+    compile group: 'com.h2database', name: 'h2', version: '1.4.200'
+
+    compile group: 'org.drools', name: 'drools-core', version: '7.30.0.Final'
+    compile group: 'org.kie', name: 'kie-spring', version: '7.30.0.Final'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "2.2.0.RELEASE"
