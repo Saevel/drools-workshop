@@ -31,3 +31,6 @@ score according to the following rules:
         * If the user is a trusted one (as indicated by the "trusted" flat on the User class in Drools domain) his account
         should be blocked once the overall fraud score reaches 3.0
         * If the user is not a trusted one, his account should be blocked once the overall fraud score reaches 2.0
+        
+Once you have done that, run the "AntifraudRulesTest" to verify the correctness of your implementation.
+    
