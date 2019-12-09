@@ -2,7 +2,7 @@
     <kbase name="userRules" packages="prv.saevel.drools.workshop.users">
         <ksession name="userRulesSession" type="stateful" />
     </kbase>
-    <kbase name="amlRules" packages="prv.saevel.drools.workshop.aml">
-        <ksession name="amlSession" />
+    <kbase name="antifraudRules" equalsBehavior="equality" packages="prv.saevel.drools.workshop.antifraud">
+        <ksession name="antifraudSession" />
     </kbase>
 </kmodule>

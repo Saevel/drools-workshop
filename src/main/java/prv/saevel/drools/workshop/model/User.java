@@ -1,4 +1,4 @@
-package prv.saevel.drools.workshop.users;
+package prv.saevel.drools.workshop.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,4 +14,6 @@ public class User {
     private String country;
 
     private List<Account> accounts;
+
+    private boolean trusted;
 }

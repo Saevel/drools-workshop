@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
+import prv.saevel.drools.workshop.model.Account;
+import prv.saevel.drools.workshop.model.Currency;
+import prv.saevel.drools.workshop.model.User;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,10 +26,10 @@ public class UsersServiceTest {
     private CrudRepository<User, Long> usersRepository;
 
     private List<User> usersWithoutAccounts = Arrays.asList(
-            new User(1L, "Brazil", null),
-            new User(2L, "USA", null),
-            new User(3L, "Brazil", null),
-            new User(4L, "France", null)
+            new User(1L, "Brazil", null, true),
+            new User(2L, "USA", null, false),
+            new User(3L, "Brazil", null, true),
+            new User(4L, "France", null, false)
     );
 
     @Test

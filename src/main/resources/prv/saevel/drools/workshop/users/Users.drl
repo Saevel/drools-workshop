@@ -1,8 +1,8 @@
 package prv.saevel.drools.workshop.users;
 
-import prv.saevel.drools.workshop.users.User;
-import prv.saevel.drools.workshop.users.Account;
-import prv.saevel.drools.workshop.users.Currency;
+import prv.saevel.drools.workshop.model.User;
+import prv.saevel.drools.workshop.model.Account;
+import prv.saevel.drools.workshop.model.Currency;
 import java.util.LinkedList;
 
 global prv.saevel.drools.workshop.users.UsersService usersService;

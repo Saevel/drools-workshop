@@ -1,7 +1,9 @@
 package prv.saevel.drools.workshop.users;
 
+import org.junit.runner.RunWith;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import prv.saevel.drools.workshop.model.User;
 
 import java.util.LinkedList;
 import java.util.List;
