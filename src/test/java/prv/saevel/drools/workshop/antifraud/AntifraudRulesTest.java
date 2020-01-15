@@ -1,6 +1,5 @@
 package prv.saevel.drools.workshop.antifraud;
 
-import org.drools.core.QueryResultsRowImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,14 +7,15 @@ import org.kie.api.KieBase;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.QueryResults;
-import org.kie.api.runtime.rule.Row;
 import prv.saevel.drools.workshop.model.Account;
 import prv.saevel.drools.workshop.model.Currency;
 import prv.saevel.drools.workshop.model.Transaction;
 import prv.saevel.drools.workshop.model.User;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.TemporalAmount;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -111,14 +111,37 @@ public class AntifraudRulesTest {
         );
 
         assertEquals(
-                "The number of Transaction From Multiple Countries FraudEvents for : " + account.getId() + "is not 1.",
+                "The number of Transaction From Multiple Countries FraudEvents for : " + account.getId() + " is not 1.",
                 1,
                 results.size()
         );
     }
 
     @Test
-    public void shouldBlockAnUntrustedUserIfHisScoreReachesTwo() throws InterruptedException {
+    public void shouldCreateFraudEventsIfTransactionsFromDifferentCountriesWithin3MinsMultipleTimes() {
+        Account account = new Account(1, 1, 100.0, Currency.EUR);
+
+        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
+        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account, Duration.ofMinutes(1));
+        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account, Duration.ofMinutes(8));
+
+        session.insert(account);
+        session.fireAllRules();
+
+        QueryResults results = session.getQueryResults(
+                "findFraudEvent",
+                new Object[]{account.getId(), FraudEventType.TRANSACTION_FROM_MULTIPLE_COUNTRIES}
+        );
+
+        assertEquals(
+                "The number of Transaction From Multiple Countries FraudEvents for : " + account.getId() + " is not 2.",
+                2,
+                results.size()
+        );
+    }
+
+    @Test
+    public void shouldBlockAnUntrustedUserIfHisScoreMoreOrEqTwo() throws InterruptedException {
         User user = new User(1, "Brazil", new LinkedList<>(), false);
         Account account = new Account(1, user.getId(), 100.0, Currency.USD);
 
@@ -142,13 +165,12 @@ public class AntifraudRulesTest {
     }
 
     @Test
-    public void shouldNotBlockATrustedUserIfHisScoreReachesTwo() throws InterruptedException {
+    public void shouldNotBlockATrustedUserIfHisScoreLessThanThree() throws InterruptedException {
         User user = new User(1, "Brazil", new LinkedList<>(), true);
         Account account = new Account(1, user.getId(), 100.0, Currency.USD);
 
         simulateAccountEmptying(account, session);
         simulateTransactionFromBlacklistedCountry(account, session);
-        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
 
         session.insert(user);
         session.insert(account);
@@ -162,16 +184,14 @@ public class AntifraudRulesTest {
     }
 
     @Test
-    public void shouldBlockATrustedUserIfHisScoreReachesThree() throws InterruptedException {
-        User user = new User(1, "Brazil", new LinkedList<>(), false);
+    public void shouldBlockATrustedUserIfHisScoreMoreOrEqThree() throws InterruptedException {
+        User user = new User(1, "Brazil", new LinkedList<>(), true);
         Account account = new Account(1, user.getId(), 100.0, Currency.USD);
 
         simulateAccountEmptying(account, session);
         simulateTransactionFromBlacklistedCountry(account, session);
         simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
-        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
-        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
-        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account);
+        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account, Duration.ofMinutes(5));
 
         session.insert(user);
         session.insert(account);
@@ -188,9 +208,33 @@ public class AntifraudRulesTest {
         assertEquals("The given account was not blocked", (long) blockedAccountOne, account.getId());
     }
 
+    @Test
+    public void shouldNotBlockUnTrustedUserIfHisScoreLessThanTwo() throws InterruptedException {
+        User user = new User(1, "Brazil", new LinkedList<>(), false);
+        Account account = new Account(1, user.getId(), 100.0, Currency.USD);
+
+        simulateAccountEmptying(account, session);
+
+        session.insert(user);
+        session.insert(account);
+
+        session.fireAllRules();
+
+        List<Long> blockedAccountIds = accountService.getBlockedAccountIds();
+
+        assertNotNull("Blocked account ids are null", blockedAccountIds);
+        assertTrue("The user's account was blocked but fraud score limit was not reached", blockedAccountIds.isEmpty());
+    }
+
     private void simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(KieSession session,
                                                                               Account account){
-        long now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+        simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(session, account, Duration.ZERO);
+    }
+
+    private void simulateTwoTransactionsFromDifferentCountriesWithinThreeMins(KieSession session,
+                                                                              Account account,
+                                                                              TemporalAmount timeShift) {
+        long now = LocalDateTime.now().plus(timeShift).toEpochSecond(ZoneOffset.UTC);
         Transaction transactionOne = new Transaction(
                 1234L,
                 account.getId(),
@@ -200,7 +244,7 @@ public class AntifraudRulesTest {
                 Currency.USD
         );
         Transaction transactionTwo = new Transaction(
-                1234L,
+                1235L,
                 account.getId(),
                 now + 120,
                 "Germany",

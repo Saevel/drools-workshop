@@ -16,7 +16,8 @@ score according to the following rules:
 
     - Every time within 3 minutes from transaction on an account, there is a transaction on the same account from a 
     different country, a FraudEvent with FraudEventType.TRANSACTION_FROM_MULTIPLE_COUNTRIES is emitted and adds 1.0 to
-    overall fraud score.
+    overall fraud score. This kind of event should be emitted only once per multiple transactions from different countries
+    within 3 minutes.
     
     - If for an account there is any transaction to/from a blacklisted country (as defined by the "blacklisted" flag on 
     the "Country" class in the Drools domain), a FraudEvent with FraudEventType.TRANSACTION_FROM_BLACKLISTED_COUNTRY is
