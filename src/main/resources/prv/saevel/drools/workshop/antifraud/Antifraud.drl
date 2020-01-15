@@ -22,28 +22,28 @@ rule "Create fraud score if absent"
 rule "Transaction from a blacklisted country"
     when
         Account($accountId : id, $userId : userId, b : balance, c1 : currency)
-        Transaction(i : id, accountId == $accountId, t : timestamp, $country : country, a : amount, c2 : currency)
+        Transaction(i : id, accountId == $accountId, $t : timestamp, $country : country, a : amount, c2 : currency)
         Country(name == $country, blacklisted == true)
     then
-        insert(new FraudEvent($accountId, FraudEventType.TRANSACTION_FROM_BLACKLISTED_COUNTRY, false));
+        insert(new FraudEvent($accountId, FraudEventType.TRANSACTION_FROM_BLACKLISTED_COUNTRY, false, $t));
     end
 
 rule "Account emptying transaction"
     when
         Account($accountId : id, $userId : userId, $balance: balance, c1 : currency)
-        Transaction(i : id, accountId == $accountId, t: timestamp, $country : country, amount >= (0.9 * $balance), c2 : currency)
+        Transaction(i : id, accountId == $accountId, $t: timestamp, $country : country, amount >= (0.9 * $balance), c2 : currency)
     then
-        insert(new FraudEvent($accountId, FraudEventType.ACCOUNT_EMPTYING, false));
+        insert(new FraudEvent($accountId, FraudEventType.ACCOUNT_EMPTYING, false, $t));
     end
 
 rule "Transactions from multiple countries in short succession"
     when
-        Transaction(i1 : id, $accountId : accountId, t1: timestamp, $country : country, a1 : amount, c1 : currency)
-        Transaction(i2 : id, accountId == $accountId, t2: timestamp , country != $country, a2: amount, c2 : currency)
+        $t1: Transaction()
+        $t2: Transaction(accountId == $t1.getAccountId(), country != $t1.getCountry(), timestamp > $t1.getTimestamp() - 180 && timestamp <= $t1.getTimestamp())
+        not FraudEvent(accountId == $t1.getAccountId(), type == FraudEventType.TRANSACTION_FROM_MULTIPLE_COUNTRIES, occurrence < $t1.getTimestamp() + 180)
     then
-        if(t1 - t2 < 180 && t1 - t2 > -180){
-            insert(new FraudEvent($accountId, FraudEventType.TRANSACTION_FROM_MULTIPLE_COUNTRIES, false));
-        }
+        insert(new FraudEvent($t1.getAccountId(), FraudEventType.TRANSACTION_FROM_MULTIPLE_COUNTRIES, false, $t1.getTimestamp()));
+        System.out.println("T1 " + $t1.getTimestamp() + " T2 " + $t2.getTimestamp());
     end
 
 rule "Update fraud score for blacklisted countries"
