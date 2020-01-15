@@ -14,4 +14,6 @@ public class FraudEvent {
 
     @Setter
     private boolean processed;
+
+    private long occurrence;
 }
